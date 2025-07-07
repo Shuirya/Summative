@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    :root {
+      --primary-color: #007e33;
+      --secondary-color: #f9fdf9;
+      --accent-color: #00b34c;
+      --border-radius: 10px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef8f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      text-align: center;
+      color: var(--primary-color);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input[type="text"], select, textarea {
+      padding: 10px;
+      width: 100%;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .radio-group {
+      margin-top: 5px;
+      padding-bottom: 10px;
+    }
+
+    .radio-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: normal;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: var(--accent-color);
+    }
+
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .error { color: red; }
+    .success { color: green; }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: var(--secondary-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Student Course Satisfaction Feedback Form</h2>
+    <p style="text-align:center;">Visit <a href="https://www.dlsud.edu.ph" target="_blank">DLSU-D Website</a> for more info.</p>
+
+    <form id="feedbackForm" onsubmit="handleSubmit(event)">
+      <label for="name">Full Name:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label>Course Taken:</label>
+      <div id="courseOptions" class="radio-group"></div>
+
+      <label for="year">Year Level:</label>
+      <select id="year" name="year" required>
+        <option value="">-- Select Year Level --</option>
+        <option value="1st Year">1st Year</option>
+        <option value="2nd Year">2nd Year</option>
+        <option value="3rd Year">3rd Year</option>
+        <option value="4th Year">4th Year</option>
+      </select>
+
+
+      <div id="ratingsContainer"></div>
+
+      <label for="comments">Additional Feedback:</label>
+      <textarea id="comments" rows="4" placeholder="Share your experience or suggestions..." required></textarea>
+
+      <button type="submit">Submit Feedback</button>
+    </form>
+
+    <div id="message"></div>
+
+    <h3>Feedback Listings</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Course</th>
+          <th>Year</th>
+          <th>Content Rating</th>
+          <th>Instructor Rating</th>
+          <th>Facility Rating</th>
+          <th>Comments</th>
+        </tr>
+      </thead>
+      <tbody id="feedbackTableBody">
+
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwCOsd7NetTCgBr2dXYXDNYChrB-y3BXHqQZ5LW-P93wHeorzIg5mCtLyW3i-gwCrmg/exec";
+
+    const courseOptions = ["BS Computer Science", "BS Information Technology", "BS Information Systems"];
+    const ratingCategories = [
+      { key: "content", label: "Course Content" },
+      { key: "instructor", label: "Instructor Quality" },
+      { key: "facilities", label: "Classroom/Facilities" }
+    ];
+    const ratingDescriptions = [
+      "1 - Disappointed",
+      "2 - Slightly Disappointed",
+      "3 - Neutral",
+      "4 - Slightly Satisfied",
+      "5 - Satisfied"
+    ];
+
+    const courseContainer = document.getElementById("courseOptions");
+    const ratingsContainer = document.getElementById("ratingsContainer");
+    const tableBody = document.getElementById("feedbackTableBody");
+
+
+    courseOptions.forEach(course => {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "course";
+      input.value = course;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(" " + course));
+      courseContainer.appendChild(label);
+    });
+
+    ratingCategories.forEach(category => {
+      const section = document.createElement("div");
+      section.classList.add("radio-group");
+
+      const title = document.createElement("label");
+      title.textContent = `How satisfied are you with: ${category.label}`;
+      section.appendChild(title);
+
+      ratingDescriptions.forEach((desc, index) => {
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = `rating_${category.key}`;
+        input.value = index + 1;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(" " + desc));
+        section.appendChild(label);
+      });
+
+      ratingsContainer.appendChild(section);
+    });
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const year = document.getElementById("year").value;
+      const comments = document.getElementById("comments").value.trim();
+      const course = document.querySelector('input[name="course"]:checked');
+      const messageBox = document.getElementById("message");
+      messageBox.className = "";
+
+      const ratings = {};
+      let allRatingsSelected = true;
+
+      ratingCategories.forEach(category => {
+        const selected = document.querySelector(`input[name="rating_${category.key}"]:checked`);
+        if (!selected) {
+          allRatingsSelected = false;
+        } else {
+          ratings[category.key] = selected.value;
+        }
+      });
+
+      if (!name || !course || !year || !comments || !allRatingsSelected) {
+        messageBox.textContent = "Please complete all fields and rate all criteria.";
+        messageBox.className = "error";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("course", course.value);
+      formData.append("year", year);
+      formData.append("comments", comments);
+
+      ratingCategories.forEach(cat => {
+        formData.append(`rating_${cat.key}`, ratings[cat.key]);
+      });
+
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(response => response.text())
+        .then(result => {
+          messageBox.textContent = "Thank you! Your feedback was submitted.";
+          messageBox.className = "success";
+          document.getElementById("feedbackForm").reset();
+          loadFeedback();
+        })
+        .catch(error => {
+          messageBox.textContent = "Submission failed: " + error;
+          messageBox.className = "error";
+        });
+    }
+
+    function loadFeedback() {
+      fetch(scriptURL)
+        .then(response => response.json())
+        .then(data => {
+          tableBody.innerHTML = "";
+          data.reverse().forEach(entry => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${entry.name}</td>
+              <td>${entry.course}</td>
+              <td>${entry.year}</td>
+              <td>${ratingDescriptions[entry.rating_content - 1]}</td>
+              <td>${ratingDescriptions[entry.rating_instructor - 1]}</td>
+              <td>${ratingDescriptions[entry.rating_facilities - 1]}</td>
+              <td>${entry.comments}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error("Failed to load feedback:", error);
+        });
+    }
+
+    window.onload = loadFeedback;
+  </script>
+</body>
+</html>
